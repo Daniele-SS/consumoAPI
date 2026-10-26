@@ -11,8 +11,8 @@ interface EnderecoService {
 
     @GET("{uf}/{cidade}/{rua}/json/")
     fun getEnderecoByUfCidadeRua(
-        @Path("uf"): uf: String,
-        @Path("cidade"): cidade: String,
-        @Path("rua"): rua: String
+        @Path("uf") uf: String,
+        @Path("cidade") cidade: String,
+        @Path("rua") rua: String
     ): Call<List<Endereco>>
 }
