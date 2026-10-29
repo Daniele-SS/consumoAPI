@@ -1,7 +1,6 @@
 package com.example.consumoapi
 
 import android.os.Bundle
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -111,10 +110,44 @@ fun CepScreen(modifier: Modifier = Modifier) {
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text(text = "Qual CEP está buscando?") },
                     trailingIcon = {
-                        IconButton( onClick = { /* TODO */ } ) {
+                        IconButton( onClick = {
+                            var cep = cepState.filter { it.isDigit() }
+
+                            if (cep.length == 8) {
+                                val call = RetrofitFactory()
+                                    .getEnderecoService()
+                                    .getEnderecoByCep(cep)
+
+                                call.enqueue(object: Callback<Endereco> {
+
+                                    override fun onResponse(
+                                        call: Call<Endereco>,
+                                        response: Response<Endereco>
+                                    ) {
+                                        if (response.isSuccessful) {
+                                            val endereco = response.body()
+
+                                            if (endereco != null) {
+                                                ufState = endereco.uf ?: ""
+                                                cidadeState = endereco.cidade ?: ""
+                                                ruaState = endereco.rua ?: ""
+                                            }
+                                        }
+                                    }
+
+                                    override fun onFailure(
+                                        call: Call<Endereco?>?,
+                                        t: Throwable?
+                                    ) {
+                                        TODO("Not yet implemented")
+                                    }
+                                })
+                            }
+
+                        } ) {
                             Icon(
                                 imageVector = Icons.Default.Search,
-                                contentDescription = ""
+                                contentDescription = "Buscar CEP"
                             )
                         }
                     },
@@ -171,11 +204,9 @@ fun CepScreen(modifier: Modifier = Modifier) {
 
                         call.enqueue(object: Callback<List<Endereco>> {
                             override fun onResponse(
-                                call: Call<List<Endereco>>,
+                                call: Call<List<Endereco>?>?,
                                 response: Response<List<Endereco>>
                             ) {
-                                Log.i("TESTE", "${response.body()}")
-
                                 listaEnderecosStates = response.body()!!
                             }
 
@@ -207,7 +238,9 @@ fun CepScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun CardEndereco(endereco: Endereco) {
+fun CardEndereco(
+    endereco: Endereco
+) {
     Card(
         modifier = Modifier.fillMaxWidth()
             .padding(bottom = 4.dp)
